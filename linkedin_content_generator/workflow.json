@@ -1,0 +1,266 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Post Creator",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Post Topic : "
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -640,
+        -112
+      ],
+      "id": "3385915c-60c7-4c7e-8cf0-002979ee7bbf",
+      "name": "On form submission",
+      "webhookId": "f8413c7e-9c04-4f0c-80be-71d9458d2528"
+    },
+    {
+      "parameters": {
+        "person": "xK-fTCFL0l",
+        "text": "={{ $node[\"Research Agent\"].json.output }}",
+        "shareMediaCategory": "IMAGE",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.linkedIn",
+      "typeVersion": 1,
+      "position": [
+        640,
+        -112
+      ],
+      "id": "ebebd468-fb65-4377-b837-0283910641eb",
+      "name": "Create a post",
+      "credentials": {
+        "linkedInOAuth2Api": {
+          "id": "SvoY2smKLgpt8VaL",
+          "name": "LinkedIn account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer ADD-YOUR-TAVILY-API-KEY-HERE"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query\": \"={{ $fromAI('query', 'The tech topic to research for the latest news') }}\",\n  \"search_depth\": \"advanced\",\n  \"max_results\": 5\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        -272,
+        224
+      ],
+      "id": "ffe2cc43-7861-49af-9d46-1e376168d572",
+      "name": "Tavily Research"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Topic of Research : {{ $json['Post Topic : '] }}",
+        "options": {
+          "systemMessage": "You are a verified tech news content generator for LinkedIn.\n\nYour job:\nCreate ONE high-value LinkedIn post about a recent, measurable technical update for developers.\n\nMANDATORY RESEARCH RULE:\n\n1. You MUST use the external research results provided in the workflow (Tavily or HTTP search node).\n2. ONLY use information from the provided search results.\n3. DO NOT use prior knowledge.\n4. DO NOT guess.\n5. DO NOT speculate.\n6. If no measurable update is found, output exactly:\n\n\nA measurable update means it must include at least one of the following:\n- Version release (e.g., v2.1.0)\n- Performance improvement (e.g., 35% faster)\n- Funding amount\n- Feature launch\n- API change\n- Benchmark\n- Official announcement\n\n-----------------------------------\n\nLINKEDIN FORMAT RULES:\n\nHook Line:\nStart with a strong emoji + uppercase topic.\nExample:\n🚀 NEXT.JS 15 RELEASED\n\nBody:\n2–4 short paragraphs.\nShort lines.\nReadable on mobile.\nNo long blocks.\n\nStructure:\n\n1. Hook (1 line)\n2. What happened (1–2 lines)\n3. Why it matters for developers (1–2 lines)\n4. One measurable fact + source\n5. A short engagement question (max 8 words)\n\nTone:\n- Clear\n- Direct\n- Professional\n- No hype words (avoid: revolutionary, game-changing, disruptive, transformative)\n- No fluff\n\nHard Limit:\nMaximum 120 words total.\n\nEnd with:\nFollow for more developer updates 🚀\n3 relevant hashtags only (e.g., #AI #DevTools #Startups)\n\n-----------------------------------\n\nVALIDATION BEFORE OUTPUT:\n\nBefore responding, internally confirm:\n- Includes measurable data\n- Includes source reference\n- Under 120 words\n- No hallucinated claims]"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -432,
+        -112
+      ],
+      "id": "9117b44a-015d-4b25-bfac-521495ae1355",
+      "name": "Research Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=LinkedIn Post :  {{ $json.output }}",
+        "options": {
+          "systemMessage": "You are a senior creative director producing high-key premium editorial technology photography.\n\nGOAL:\nGenerate ONE visually unique, story-driven, high-end workspace scene per request.\n\nCRITICAL RULE:\nEach generation must feel visually distinct.\nVary:\n- Device type\n- Surface\n- Objects (max 3)\n- Camera angle\n- Lighting style\n- Depth of field\n\n---------------------------------\n\nDEVICE ROTATION RULE:\nRandomly select ONE device:\n- Google Pixel Fold (open)\n- iPad Pro with Apple Pencil\n- Premium ultrabook (minimal, no logo)\n- Minimal mechanical keyboard + large monitor\n- Android tablet with stylus\n- Foldable OLED concept device\n\nDo NOT reuse the same device composition style twice in a row.\n\n---------------------------------\n\nSCREEN CONTENT RULE (MANDATORY):\nThe screen must clearly show a readable Material 3 interface related to: {TOPIC}\n\nUI must include:\n- Clear headline text\n- 2–3 labeled sections\n- Soft pastel cards\n- Rounded corners\n- Glassmorphism or subtle elevation\n- Realistic typography spacing\n\nNo blurry or abstract UI.\n\n---------------------------------\n\nENVIRONMENT RULE:\nSelect:\n- 1 surface\n- 2–3 supporting objects MAX\n\nSurfaces:\n- Light birch wood\n- Matte white laminate\n- Terrazzo stone\n- Light grey concrete\n- Soft neutral fabric desk mat\n\nObjects:\n- Pastel notebook stack\n- Geometric ceramic decor\n- Small succulent (echeveria or haworthia)\n- Glass water carafe\n- Lamy Safari pen\n- Wireless earbuds case\n- Minimal desk lamp\n- Felt mat\n- Coffee cup (neutral ceramic)\n\nNever overcrowd scene.\n\n---------------------------------\n\nLIGHTING RULE:\nRandomly choose:\n- Window blinds shadow pattern\n- Soft side natural light\n- Dappled tree light\n- Studio softbox gradient\n- Early morning glow\n- Late afternoon warm bounce\n\nAvoid dramatic dark lighting.\nKeep high-key brightness.\n\n---------------------------------\n\nCAMERA ANGLE ROTATION:\nChoose ONE:\n- Top-down flat lay\n- 3/4 isometric desk angle\n- Low-angle macro texture focus\n- Eye-level cinematic crop\n- Over-the-shoulder workspace perspective\n\n---------------------------------\n\nVISUAL QUALITY RULES:\n- Clean background\n- Premium matte textures\n- Subtle realistic shadows\n- No stock-photo symmetry\n- Slight imperfection for realism\n- Natural reflections\n- Professional product photography look\n\n---------------------------------\n\nOUTPUT:\nReturn ONLY the final visual generation prompt.\nNo explanation.\nNo formatting.\nNo extra commentary."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -80,
+        -112
+      ],
+      "id": "1e652fdc-c311-43fc-b760-2bc5f0bb3d96",
+      "name": "Image_GEN Agent"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://image-api.aatanukrpaul.workers.dev/",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "prompt",
+              "value": "={{ $json.output }}"
+            },
+            {
+              "name": "size",
+              "value": "1024x1024"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        304,
+        -112
+      ],
+      "id": "c6ac15c4-595b-4616-88ee-86c8074e182f",
+      "name": "Image_Generation",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "TZLJb0klkdgZpiX0",
+          "name": "Header Auth account 2"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        480,
+        176
+      ],
+      "id": "1b14223f-4a57-4b0f-8f35-baae6a241438",
+      "name": "Wait 5 Sec",
+      "webhookId": "f011c03a-2e50-49bf-ada9-cc7ed081986a"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        192
+      ],
+      "id": "36d3202b-67e6-497c-98b1-12e519bd6ff5",
+      "name": "Gemini LLM",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ZAn6cPTBM45iJ7Sj",
+          "name": "Google Gemini(PaLM) Adectrix"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tavily Research": {
+      "ai_tool": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Research Agent": {
+      "main": [
+        [
+          {
+            "node": "Image_GEN Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image_GEN Agent": {
+      "main": [
+        [
+          {
+            "node": "Image_Generation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image_Generation": {
+      "main": [
+        [
+          {
+            "node": "Wait 5 Sec",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 5 Sec": {
+      "main": [
+        [
+          {
+            "node": "Create a post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini LLM": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Image_GEN Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateId": "4968",
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f9c833d17f72bb94a867cdbb425951aa89c5554db955c061f797cb50895940df"
+  }
+}
